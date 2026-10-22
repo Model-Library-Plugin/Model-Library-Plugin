@@ -1,0 +1,21 @@
+{
+  "name": "voice-tts",
+  "display_name": "本地声音插件（离线中文语音合成）",
+  "version": "1.0.0",
+  "description": "把文本变成语音。完全离线运行（Piper TTS，中文女声 huayan），无需联网、无需 API Key，支持语速调节，输出 wav / mp3。适合给本地大语言模型的回复配上声音。",
+  "entry": "voice.py",
+  "runtime": "python>=3.11",
+  "capabilities": ["text-to-speech", "tts", "voiceover", "offline"],
+  "requirements": {
+    "piper_engine": "C:\\piper-tts（引擎来自 https://github.com/rhasspy/piper）",
+    "model": "zh_CN-huayan-medium（音色来自 https://huggingface.co/rhasspy/piper-voices）",
+    "ffmpeg": "C:\\ffmpeg\\ffmpeg.exe（可选，仅导出 mp3 时需要）"
+  },
+  "env_overrides": ["VOICE_PIPER_DIR", "VOICE_MODEL", "VOICE_FFMPEG"],
+  "usage_examples": [
+    "python voice.py -t \"你好，世界\"",
+    "python voice.py -f 文案.txt --mp3",
+    "python voice.py -t \"慢速朗读\" -r 1.25"
+  ],
+  "notes": "本插件在 Windows 下开发验证；引擎与模型需先按 README 安装到本机，插件脚本本身零第三方依赖（纯 Python 标准库）。"
+}
