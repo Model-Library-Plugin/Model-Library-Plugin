@@ -1,0 +1,21 @@
+{
+  "name": "video-maker",
+  "display_name": "一键成片插件（文案转配音短视频）",
+  "version": "1.0.0",
+  "description": "把一篇文案自动变成竖屏短视频：分句、本地 TTS 配音、按句生成字幕与渐变画面、ffmpeg 合成 mp4。完全离线，无需联网、无需 API Key。是 voice-tts 声音插件的进阶版（多了画面与字幕合成）。",
+  "entry": "make_video.py",
+  "runtime": "python>=3.11",
+  "capabilities": ["text-to-video", "tts", "subtitle", "video-compositing", "offline"],
+  "requirements": {
+    "piper_engine": "C:\\piper-tts（引擎与 zh_CN-huayan-medium 模型，见 voice-tts 插件说明）",
+    "ffmpeg": "C:\\ffmpeg\\ffmpeg.exe（需含 libx264 与 libfreetype/drawtext）",
+    "font": "C:\\Windows\\Fonts\\simhei.ttf（中文字幕字体，可换）"
+  },
+  "env_overrides": ["VOICE_PIPER_DIR", "VOICE_MODEL", "VOICE_FFMPEG", "VIDEO_FONT"],
+  "usage_examples": [
+    "python make_video.py 文案.txt",
+    "（或把文案 txt 拖到「一键成片.bat」图标上）"
+  ],
+  "output": "与文案同目录生成同名 .mp4（1080x1920 竖屏，H.264 + AAC）",
+  "notes": "已在本机完成全流程验证（17 秒 5 句文案一键成片）。文案请使用中文；引擎与中间文件固定走英文路径以规避 Windows 原生程序的路径编码问题。"
+}
