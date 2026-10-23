@@ -1,0 +1,23 @@
+{
+  "name": "voice-clone",
+  "display_name": "声音克隆插件（GPT-SoVITS 一键部署器）",
+  "version": "1.0.0",
+  "description": "声音克隆（voice cloning）：用几秒参考音频克隆音色，再用该音色合成任意文本。封装开源顶流 GPT-SoVITS（MIT 协议，中文效果最好），提供环境体检 + 国内镜像一键部署 + 启动器。需要 NVIDIA GPU（建议 6G 显存以上）。",
+  "entry": "check_env.py",
+  "runtime": "python>=3.9",
+  "capabilities": ["voice-clone", "voice-conversion", "tts", "zero-shot", "gpu"],
+  "upstream": "https://github.com/RVC-Boss/GPT-SoVITS",
+  "requirements": {
+    "gpu": "NVIDIA GPU，建议 6GB 显存以上（纯 CPU 不可用）",
+    "disk": ">= 8 GB 剩余空间",
+    "python": "3.9 ~ 3.11",
+    "network": "github.com + hf-mirror.com（国内镜像已内置）"
+  },
+  "env_overrides": ["CLONE_PIP_INDEX", "CLONE_HF_ENDPOINT", "CLONE_INSTALL_DIR"],
+  "usage_examples": [
+    "python check_env.py",
+    "install.bat",
+    "start.bat"
+  ],
+  "notes": "本插件是部署器：本机（无 GPU）仅能完成环境体检，真正的克隆推理需在带 NVIDIA GPU 的机器上部署后使用。模型下载走 hf-mirror 镜像，依赖安装走清华 pip 镜像。"
+}
