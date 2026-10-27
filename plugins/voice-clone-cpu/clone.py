@@ -17,8 +17,20 @@ import argparse
 import os
 import sys
 
+# 离线运行关键设置：本机模型已就位，禁止 transformers/huggingface_hub 联网，
+# 否则会去 xethub 下载 safetensors 而超时。必须在 import transformers 前设置。
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
+os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
+# ffmpeg（pydub 解码音频需要）
+_ffmpeg_dir = r"D:\ffmpeg"
+if os.path.isdir(_ffmpeg_dir) and _ffmpeg_dir not in os.environ.get("PATH", ""):
+    os.environ["PATH"] = _ffmpeg_dir + os.pathsep + os.environ.get("PATH", "")
+
 INSTALL_DIR = os.environ.get("CLONE_CPU_INSTALL_DIR", r"D:\OpenVoice")
 CKPT_DIR = os.path.join(INSTALL_DIR, "checkpoints_v2")
+# MeloTTS 源码目录（install.py 会 clone 到 D:\MeloTTS；也支持装在 INSTALL_DIR 下）
+MELO_DIR = os.environ.get("CLONE_CPU_MELO_DIR", r"D:\MeloTTS")
 
 LANG_MAP = {
     "ZH": "zh", "EN": "en", "EN_NEWEST": "en-newest", "JP": "jp",
@@ -41,9 +53,10 @@ def ensure_installed():
 def clone(ref_audio, text, lang, speed, out_path):
     ensure_installed()
     sys.path.insert(0, INSTALL_DIR)
+    if os.path.exists(MELO_DIR):
+        sys.path.insert(0, MELO_DIR)
 
     import torch
-    from openvoice import se_extractor
     from openvoice.api import ToneColorConverter
 
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -57,12 +70,24 @@ def clone(ref_audio, text, lang, speed, out_path):
     print("[1/3] 音色转换器已加载")
 
     # 2) 从参考音频提取目标音色
-    target_se, _ = se_extractor.get_se(ref_audio, converter, vad=True)
+    # 直接用 converter.extract_se 提取整段音色，绕开官方 get_se 里的
+    # faster-whisper 分段（它硬编码 device="cuda" + 需联网下载模型）。
+    # 对 15 秒内的短参考音频，整段提取即可。
+    target_se = converter.extract_se(ref_audio)
     print("[2/3] 已从参考音频提取音色：{}".format(ref_audio))
 
     # 3) 用基础音色合成文本，再转换为目标音色
     from melo.api import TTS
-    model = TTS(language=lang, device=device)
+    # 优先用本地模型（离线可用），找不到才回退在线下载
+    melo_dir = os.path.join(INSTALL_DIR, "melo_models", lang)
+    cfg = os.path.join(melo_dir, "config.json")
+    ckpt = os.path.join(melo_dir, "checkpoint.pth")
+    if os.path.exists(cfg) and os.path.exists(ckpt):
+        model = TTS(language=lang, device=device, config_path=cfg, ckpt_path=ckpt)
+        print("[3/3] 使用本地 MeloTTS 模型：{}".format(melo_dir))
+    else:
+        model = TTS(language=lang, device=device)
+        print("[3/3] 本地无模型，使用在线下载（可能较慢）")
     speaker_key = LANG_MAP.get(lang, "en")
     speaker_id = model.hps.data.spk2id[speaker_key.upper().replace("-", "_")] \
         if speaker_key.upper().replace("-", "_") in model.hps.data.spk2id \
@@ -86,7 +111,10 @@ def clone(ref_audio, text, lang, speed, out_path):
         message=encode_message,
     )
     if os.path.exists(tmp_wav):
-        os.unlink(tmp_wav)
+        try:
+            os.unlink(tmp_wav)
+        except Exception:
+            pass
     print("完成：{}".format(out_path))
     return out_path
 
