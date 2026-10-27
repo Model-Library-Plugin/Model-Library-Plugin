@@ -1,24 +1,24 @@
 {
   "name": "voice-clone-cpu",
   "display_name": "声音克隆插件（OpenVoice，纯 CPU 可用）",
-  "version": "1.0.0",
-  "description": "声音克隆（voice cloning），无需 NVIDIA GPU、纯 CPU 可跑：用参考音频克隆音色，再用该音色合成任意文本，支持中/英/日/韩/法/西跨语种。封装 OpenVoice V2（myshell-ai，MIT 协议）。与 voice-clone（GPT-SoVITS，需 GPU）互补。",
+  "version": "1.1.0",
+  "description": "声音克隆（voice cloning），无需 NVIDIA GPU、纯 CPU 可跑：用参考音频克隆音色，再用该音色合成任意文本，支持中/英/日/韩/法/西跨语种。封装 OpenVoice V2（myshell-ai，MIT 协议）。已在无 GPU 机器上完整实测跑通中文克隆。与 voice-clone（GPT-SoVITS，需 GPU）互补。",
   "entry": "check_env.py",
   "runtime": "python>=3.10",
   "capabilities": ["voice-clone", "voice-conversion", "tts", "zero-shot", "cross-lingual", "cpu"],
   "upstream": "https://github.com/myshell-ai/OpenVoice",
   "requirements": {
-    "gpu": "无需 GPU，纯 CPU 可跑（合成速度较慢）",
-    "disk": ">= 5 GB 剩余空间（依赖 + 模型，建议装到 D 盘）",
+    "gpu": "无需 GPU，纯 CPU 可跑（合成一句约 30~60 秒）",
+    "disk": ">= 8 GB 剩余空间（依赖 + 模型约 4G，建议装到 D 盘）",
     "python": "3.10 ~ 3.11（3.12+ 部分旧依赖不兼容）",
-    "network": "github.com + hf-mirror.com + 清华 pip 镜像（国内镜像已内置）"
+    "network": "github.com + hf-mirror.com + 清华 pip 镜像（国内镜像已内置，运行时完全离线）"
   },
-  "env_overrides": ["CLONE_CPU_INSTALL_DIR", "CLONE_CPU_HF_ENDPOINT", "CLONE_CPU_PIP_INDEX"],
+  "env_overrides": ["CLONE_CPU_INSTALL_DIR", "CLONE_CPU_HF_ENDPOINT", "CLONE_CPU_PIP_INDEX", "CLONE_CPU_MELO_DIR"],
   "usage_examples": [
     "python check_env.py",
     "install.bat",
-    "python clone.py --ref 参考音频.wav --text \"要说的文本\" --lang zh",
+    "python clone.py --ref 参考音频.wav --text \"要说的文本\" --lang ZH",
     "start.bat"
   ],
-  "notes": "本插件封装 OpenVoice V2，模型走 hf-mirror（myshell-ai/OpenVoiceV2 仓库，替代已失效的官方 S3 直链）。纯 CPU 可跑，但合成一句约需几十秒；有 NVIDIA GPU 建议改用 voice-clone（GPT-SoVITS）插件。"
+  "notes": "v1.1.0 已完整实测：本机（无 GPU）跑通中文克隆全链路。关键处理已固化——transformers 降级 4.44.2、MeloTTS 各语言 BERT 惰性化补丁、hf-mirror LFS 用 urllib 直链下载、官方 se_extractor 硬编码 cuda 改为直接 extract_se、离线模式环境变量。"
 }
